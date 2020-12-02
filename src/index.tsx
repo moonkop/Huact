@@ -22,7 +22,8 @@ function renderDomNode (element: HuactElement) {
     });
     if (element.props.children) {
         let childrens = element.props.children.map(item => {
-            if (typeof item == "string") {
+            if (typeof item == "string" || typeof item == 'number') {
+
                 return document.createTextNode(item);
             } else if (typeof item == 'object' && item.tagName) {
                 return renderNode(item);
@@ -38,10 +39,22 @@ function renderDomNode (element: HuactElement) {
 function renderComponentNode (element: HuactElement) {
     let tagname = element.tagName as Component<any, any>;
     // @ts-ignore
-    let inst = new tagname()
-    inst.props = element.props;
-    let renderEle = inst.render();
-    return renderNode(renderEle);
+    let component = new tagname()
+    component.props = element.props;
+    let root = renderComponent(component, false);
+
+    return root;
+}
+
+function renderComponent (component, isUpdate) {
+
+    let renderEle = component.render();
+    let root = renderNode(renderEle);
+    if (component.root) {
+        component.root.parentNode.replaceChild(root, component.root);
+    }
+    component.root = root;
+    return root;
 }
 
 function renderNode (element: HuactElement) {
@@ -67,20 +80,25 @@ function createElement (tagName, props, ...children): HuactElement {
 
 class Component<P, S> {
 
-    constructor (props) {}
+    constructor (props) {
+    }
 
     props: P;
     state: S;
+    root: HTMLElement;
 
     render (): HuactElement {
         return null
     }
 
     setState (state: Partial<S>) {
-
+        this.state = {...this.state, ...state};
+        this.forceUpdate();
     }
 
     forceUpdate () {
+        renderComponent(this, true);
+
 
     }
 
@@ -102,14 +120,14 @@ class First extends Component<{ haha: string }, { clickCount: number }> {
             </div>
 
             <div click={() => {
-                this.setState({clickCount: this.state.clickCount+1})
-            }}>setState
+                this.setState({clickCount: this.state.clickCount + 1})
+            }}>setState{this.state.clickCount}
             </div>
 
             <Second></Second>
 
             im first11{this.props.haha}
-        </div>
+        </div>;
     }
 }
 
