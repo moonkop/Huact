@@ -104,11 +104,12 @@ class Component<P, S> {
 
 }
 
-class First extends Component<{ haha: string }, { clickCount: number }> {
+class First extends Component<{ haha: string }, { clickCount: number ,input:string}> {
     constructor (props) {
         super(props);
         this.state = {
-            clickCount: 0
+            clickCount: 0,
+            input: ''
         }
     }
 
@@ -125,6 +126,12 @@ class First extends Component<{ haha: string }, { clickCount: number }> {
             </div>
 
             <Second></Second>
+            <input type="text" input={(event)=>{
+                this.setState({input: event.target.value})
+            }} value={this.state.input}/>
+            <div>
+                input is {this.state.input}
+            </div>
 
             im first11{this.props.haha}
         </div>;
@@ -149,7 +156,6 @@ render(
             {text}
         </div>
         <First haha={'hahahahah'}></First>
-        <input type="text"/>
     </div>,
     document.getElementById('root')
 )
