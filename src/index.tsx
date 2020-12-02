@@ -13,7 +13,12 @@ function renderDomNode (element: HuactElement) {
         if (key == 'className') {
             key = 'class';
         }
-        ele.setAttribute(key, prop);
+        if (typeof prop == 'function') {
+            ele.addEventListener(key, prop);
+        } else {
+            ele.setAttribute(key, prop);
+
+        }
     });
     if (element.props.children) {
         let childrens = element.props.children.map(item => {
@@ -31,10 +36,10 @@ function renderDomNode (element: HuactElement) {
 }
 
 function renderComponentNode (element: HuactElement) {
-    let tagname = element.tagName as Component;
+    let tagname = element.tagName as Component<any, any>;
     // @ts-ignore
-    let inst=new tagname()
-    inst.props=element.props;
+    let inst = new tagname()
+    inst.props = element.props;
     let renderEle = inst.render();
     return renderNode(renderEle);
 }
@@ -48,31 +53,30 @@ function renderNode (element: HuactElement) {
 }
 
 interface HuactElement {
-    tagName: string | Component,
-    props: { [key: string]: any ,children:HuactElement[]} | null,
+    tagName: string | Component<{}, {}>,
+    props: { [key: string]: any, children: HuactElement[] } | null,
 }
 
 function createElement (tagName, props, ...children): HuactElement {
     return {
         tagName,
-        props:{...props,children},
+        props: {...props, children},
     }
 }
 
 
-class Component {
+class Component<P, S> {
 
-    constructor (props) {
-    }
+    constructor (props) {}
 
-    props: HuactElement['props'];
-    state: object;
+    props: P;
+    state: S;
 
     render (): HuactElement {
         return null
     }
 
-    setState () {
+    setState (state: Partial<S>) {
 
     }
 
@@ -82,13 +86,26 @@ class Component {
 
 }
 
-class First extends Component {
+class First extends Component<{ haha: string }, { clickCount: number }> {
     constructor (props) {
         super(props);
+        this.state = {
+            clickCount: 0
+        }
     }
 
     render (): HuactElement {
         return <div>
+            <div click={() => {
+                console.log('im clicked')
+            }}>button
+            </div>
+
+            <div click={() => {
+                this.setState({clickCount: this.state.clickCount+1})
+            }}>setState
+            </div>
+
             <Second></Second>
 
             im first11{this.props.haha}
@@ -96,7 +113,7 @@ class First extends Component {
     }
 }
 
-class Second extends Component{
+class Second extends Component<{}, {}> {
     render () {
         return (
             <div>
@@ -105,6 +122,7 @@ class Second extends Component{
         );
     }
 }
+
 console.log('initial');
 let text = 'text123'
 render(
